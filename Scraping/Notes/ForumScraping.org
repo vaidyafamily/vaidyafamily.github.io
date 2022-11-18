@@ -24,10 +24,10 @@ To request content from a website, we can use the following:
 
 #+BEGIN_SRC python
   import requests
-  r = requests.get('http://info.cern.ch/hypertext/DataSources/Top.html')
+  r = requests.get('https://vaidyafamily.github.io/Scraping/Notes/test2.html')
 #+END_SRC
 
-This snippet of code submits an [[https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods][HTTP GET request]] to the website http://info.cern.ch/hypertext/DataSources/Top.html (which I've picked for its simplicity) and gets its HTML code along with some other data and stores it in a requests object. To check if the above snippet was successful we can check the request object's status code.
+This snippet of code submits an [[https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods][HTTP GET request]] to the website  https://vaidyafamily.github.io/Scraping/Notes/test2.html (which I've created to be a simple website we can test these tools on) and gets its HTML code along with some other data and stores it in a requests object. To check if the above snippet was successful we can check the request object's status code.
 
 #+BEGIN_SRC python :exports both
   print(r.status_code)
@@ -44,24 +44,45 @@ A [[https://en.wikipedia.org/wiki/List_of_HTTP_status_codes][status code]] of 20
 
 #+RESULTS:
 #+begin_example
-<title>Overview of the Web</title>
-<h1>General Overview</h1>
-There is no "top" to the World-Wide Web.
-You can look at it from many points of view.
-If you have no other bias, here are some ways of looking for
-information.
-<DL>
-<DT><a href=bySubject/Overview.html>by Subject</a>
-<DD>A classification by subject of interest. Incomplete
-but easiest to use.
-<DT><a href=ByAccess.html>by Type</a>
-<DD>Looking by type of service (access protocol, etc)
-may allow to find things if you know what you are looking for.
-</DL>
-If you have to use a "top" node, we recommend either this node
-or the subject list.
-See also: <a href=../WWW/TheProject.html>About the W3 project</a>.
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Test website</title>
+    <link rel="stylesheet" href="">
+  </head>
+  <body>
+    <h1>This is an example of a top level headline</h1>
+		<h2>Links</h2>
+		<div class="links">
+			<div class="section">
+				<h3>Social Media</h3>
+				<a href="www.reddit.com">Reddit</a>
+				<p></p>
+				<a href="www.facebook.com">Facebook</a>
+				<p></p>
+			</div>
+			<div class="section">
+				<h3>News</h3>
+				<a href="www.cnn.com">CNN</a>
+				<p></p>
+				<a href="www.foxnews.com">Fox</a>
+			</div>
+		</div>
+		<h2>Agenda</h2>
+    <div class="Agenda">
+			<ul>
+				<li>Make test website</li>
+				<li>Write up notes for video</li>
+				<li>Make Video</li>
+			</ul>
+		</div>
+  </body>
+</html>
 #+end_example
+
 
 ** HTML
 
