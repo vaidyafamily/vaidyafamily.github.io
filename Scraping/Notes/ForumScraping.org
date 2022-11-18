@@ -84,6 +84,7 @@ A [[https://en.wikipedia.org/wiki/List_of_HTTP_status_codes][status code]] of 20
 #+end_example
 
 
+
 ** HTML
 
 We don't need to understand the details of what the HTML is doing, but it is important to understand the way HTML works in general. The content displayed on a website is generally embedded within opening and closing HTML tags. The tags taken together with the content are known as an HTML element. The tags either tell a browser how to render the embedded content or simply containerize the content. An opening tag consists of a keyword within angular brackets, whereas a closing tag is the same as the opening tag except the keyword is preceded by a forward slash. For example
