@@ -1,0 +1,173 @@
+#+TITLE: Scraping Forums with Python
+#+DATE: 2022-11-11
+#+PROPERTY: header-args :session book
+#+PROPERTY: header-args+ :results output
+#+PROPERTY: header-args+ :exports both
+#+OPTIONS: num:nil
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="style.css" />
+#+EXPORT_FILE_NAME: /home/amol/test.html
+
+While I've done my best to make this page be self-contained, it was initially written as notes to accompany my Youtube video on the same topic.
+
+* Overview
+
+The Python ecosystem has two fantastic libraries that make scraping websites easy: [[https://requests.readthedocs.io/en/latest/][Requests]] and [[https://www.crummy.com/software/BeautifulSoup/bs4/doc/][Beautifulsoup]]. These notes will walk you through how to use those libraries to scrape information off of a web forum. We will look at how to get author, date posted, and post information for all posts made in 2022 up to now on the [[https://texags.com/forums/13][Texags Entertainment board]] as our example.
+
+* Some Preliminary Information
+
+Websites are built in a markup language known as HTML. In order to scrape information off of a website we're going to have to look at its underlying HTML. We can use Python's requests library to retrieve the website's source code (if requests is not installed you can follow the instructions [[https://requests.readthedocs.io/en/latest/user/install/][here]].) 
+
+** Requests
+
+To request content from a website, we can use the following:
+
+#+BEGIN_SRC python
+  import requests
+  r = requests.get('http://info.cern.ch/hypertext/DataSources/Top.html')
+#+END_SRC
+
+This snippet of code submits an [[https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods][HTTP GET request]] to the website http://info.cern.ch/hypertext/DataSources/Top.html (which I've picked for its simplicity) and gets its HTML code along with some other data and stores it in a requests object. To check if the above snippet was successful we can check the request object's status code.
+
+#+BEGIN_SRC python :exports both
+  print(r.status_code)
+#+END_SRC
+
+#+RESULTS:
+: 200
+
+A [[https://en.wikipedia.org/wiki/List_of_HTTP_status_codes][status code]] of 200 indicates that the GET request was successful. We can see the HTML of the site by accessing the request object's text attribute.
+
+#+BEGIN_SRC python :exports both
+  print(r.text)
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+<title>Overview of the Web</title>
+<h1>General Overview</h1>
+There is no "top" to the World-Wide Web.
+You can look at it from many points of view.
+If you have no other bias, here are some ways of looking for
+information.
+<DL>
+<DT><a href=bySubject/Overview.html>by Subject</a>
+<DD>A classification by subject of interest. Incomplete
+but easiest to use.
+<DT><a href=ByAccess.html>by Type</a>
+<DD>Looking by type of service (access protocol, etc)
+may allow to find things if you know what you are looking for.
+</DL>
+If you have to use a "top" node, we recommend either this node
+or the subject list.
+See also: <a href=../WWW/TheProject.html>About the W3 project</a>.
+#+end_example
+
+** HTML
+
+We don't need to understand the details of what the HTML is doing, but it is important to understand the way HTML works in general. The content displayed on a website is generally embedded within opening and closing HTML tags. The tags taken together with the content are known as an HTML element. The tags either tell a browser how to render the embedded content or simply containerize the content. An opening tag consists of a keyword within angular brackets, whereas a closing tag is the same as the opening tag except the keyword is preceded by a forward slash. For example
+
+#+BEGIN_SRC html
+<h1>General Overview</h1>
+#+END_SRC
+
+The <h1>...</h1> tags indicate that the content between the opening and closing tags should be treated as a top level heading.
+
+Additionally, opening HTML tags can have attributes specified within them. Attributes can change the way an HTML element is rendered, behaves, or simply add information about the element. For example
+
+#+BEGIN_SRC html
+<a href=http://www.duckduckgo.com>Search Engine</a>
+#+END_SRC
+
+creates a link with the text "Search Engine" pointing to duckduckgo, as specified by the href attribute. The above HTML element would be rendered as
+
+[[http://www.duckduckgo.com][Search Engine]]
+
+Before delving into how to parse HTML, it's worth mentioning that HTML elements can be nested within other HTML elements. In this case, the content inherits the properties of all tags enclosing it. When working with nested elements, tags should be closed in the reverse order of which they were opened. In the following example, all words surrounded by the bold tags <b>...</b> will be bolded, but the word surrounded by the italics tag <i>...</i> will be both bolded and italicized as the italics tags are nested within the bold tags.
+
+
+#+HTML: <div class="boxed">
+
+#+BEGIN_SRC html
+This <b>is some bolded and <i>italicized</i> text</b>.
+#+END_SRC
+
+#+BEGIN_EXPORT html
+This <b>is some bolded and <i>italicized</i> text</b>.
+</div>
+#+END_EXPORT
+
+** BeautifulSoup
+
+Beautifulsoup makes it easy to extract content from HTML. We can create a BeautifulSoup object out of HTML, such as what we have stored in our prior request object, with the following:
+
+#+BEGIN_SRC python
+from bs4 import BeautifulSoup
+soup = BeautifulSoup(r.text)
+#+END_SRC
+
+This represent the html stored in the Request object as a nested data structure
+
+#+BEGIN_SRC python :exports both
+  print(soup.prettify())
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+<html>
+ <head>
+  <title>
+   Overview of the Web
+  </title>
+ </head>
+ <body>
+  <h1>
+   General Overview
+  </h1>
+  There is no "top" to the World-Wide Web.
+You can look at it from many points of view.
+If you have no other bias, here are some ways of looking for
+information.
+  <dl>
+   <dt>
+    <a href="bySubject/Overview.html">
+     by Subject
+    </a>
+   </dt>
+   <dd>
+    A classification by subject of interest. Incomplete
+but easiest to use.
+   </dd>
+   <dt>
+    <a href="ByAccess.html">
+     by Type
+    </a>
+   </dt>
+   <dd>
+    Looking by type of service (access protocol, etc)
+may allow to find things if you know what you are looking for.
+   </dd>
+  </dl>
+  If you have to use a "top" node, we recommend either this node
+or the subject list.
+See also:
+  <a href="../WWW/TheProject.html">
+   About the W3 project
+  </a>
+  .
+ </body>
+</html>
+#+end_example
+
+The BeautifulSoup object has attributes associated with the various elements in the html document. For instance, if we want the title of the document contained in soup, it can be extracted by
+
+#+BEGIN_SRC python
+  print(soup.title.text)
+#+END_SRC
+
+#+RESULTS:
+: Overview of the Web
+
+#+BEGIN_COMMENT
+df['author'].value_counts()[0:10]
+E+

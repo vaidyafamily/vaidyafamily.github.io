@@ -1,0 +1,7 @@
+div.boxed { border-style : solid;
+	    border-width : thin;
+	    border-radius : 5px;
+	    border-color : #2980B9;
+	    margin-block-start : 1em;
+	    margin-block-end : 1em;
+	    padding : 5px; }

@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2022-11-17 Thu 17:53 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Scraping Forums with Python</title>
+<meta name="generator" content="Org Mode" />
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/htmlize.css"/>
+<link rel="stylesheet" type="text/css" href="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/css/readtheorg.css"/>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/lib/js/jquery.stickytableheaders.min.js"></script>
+<script type="text/javascript" src="https://fniessen.github.io/org-html-themes/src/readtheorg_theme/js/readtheorg.js"></script>
+<link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+<div id="content" class="content">
+<h1 class="title">Scraping Forums with Python</h1>
+<div id="table-of-contents" role="doc-toc">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents" role="doc-toc">
+<ul>
+<li><a href="#orgab2a9a2">Overview</a></li>
+<li><a href="#orgd6bf123">Some Preliminary Information</a>
+<ul>
+<li><a href="#org591969c">Requests</a></li>
+<li><a href="#orgb0bce21">HTML</a></li>
+<li><a href="#org3b88711">BeautifulSoup</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<p>
+While I've done my best to make this page be self-contained, it was initially written as notes to accompany my Youtube video on the same topic.
+</p>
+
+<div id="outline-container-orgab2a9a2" class="outline-2">
+<h2 id="orgab2a9a2">Overview</h2>
+<div class="outline-text-2" id="text-orgab2a9a2">
+<p>
+The Python ecosystem has two fantastic libraries that make scraping websites easy: <a href="https://requests.readthedocs.io/en/latest/">Requests</a> and <a href="https://www.crummy.com/software/BeautifulSoup/bs4/doc/">Beautifulsoup</a>. These notes will walk you through how to use those libraries to scrape information off of a web forum. We will look at how to get author, date posted, and post information for all posts made within a certain date range on the <a href="https://texags.com/forums/13">Texags Entertainment board</a> as our example.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgd6bf123" class="outline-2">
+<h2 id="orgd6bf123">Some Preliminary Information</h2>
+<div class="outline-text-2" id="text-orgd6bf123">
+<p>
+Websites are built in a markup language known as HTML. In order to scrape information off of a website we're going to have to look at its underlying HTML. We can use Python's requests library to retrieve the website's source code (if requests is not installed you can follow the instructions <a href="https://requests.readthedocs.io/en/latest/user/install/">here</a>.) 
+</p>
+</div>
+
+<div id="outline-container-org591969c" class="outline-3">
+<h3 id="org591969c">Requests</h3>
+<div class="outline-text-3" id="text-org591969c">
+<p>
+To request content from a website, we can use the following:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python"><span class="org-keyword">import</span> requests
+<span class="org-variable-name">r</span> = requests.get<span class="org-rainbow-delimiters-depth-1">(</span><span class="org-string">'http://info.cern.ch/hypertext/DataSources/Top.html'</span><span class="org-rainbow-delimiters-depth-1">)</span>
+</pre>
+</div>
+
+<p>
+This snippet of code submits an <a href="https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol#Request_methods">HTTP GET request</a> to the website <a href="http://info.cern.ch/hypertext/DataSources/Top.html">http://info.cern.ch/hypertext/DataSources/Top.html</a> (which I've picked for its simplicity) and gets its HTML code along with some other data and stores it in a requests object. To check if the above snippet was successful we can check the request object's status code.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python"><span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span>r.status_code<span class="org-rainbow-delimiters-depth-1">)</span>
+</pre>
+</div>
+
+<pre class="example">
+200
+</pre>
+
+
+<p>
+A <a href="https://en.wikipedia.org/wiki/List_of_HTTP_status_codes">status code</a> of 200 indicates that the GET request was successful. We can see the HTML of the site by accessing the request object's text attribute.
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python"><span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span>r.text<span class="org-rainbow-delimiters-depth-1">)</span>
+</pre>
+</div>
+
+<pre class="example" id="org54dd2e8">
+&lt;title&gt;Overview of the Web&lt;/title&gt;
+&lt;h1&gt;General Overview&lt;/h1&gt;
+There is no "top" to the World-Wide Web.
+You can look at it from many points of view.
+If you have no other bias, here are some ways of looking for
+information.
+&lt;DL&gt;
+&lt;DT&gt;&lt;a href=bySubject/Overview.html&gt;by Subject&lt;/a&gt;
+&lt;DD&gt;A classification by subject of interest. Incomplete
+but easiest to use.
+&lt;DT&gt;&lt;a href=ByAccess.html&gt;by Type&lt;/a&gt;
+&lt;DD&gt;Looking by type of service (access protocol, etc)
+may allow to find things if you know what you are looking for.
+&lt;/DL&gt;
+If you have to use a "top" node, we recommend either this node
+or the subject list.
+See also: &lt;a href=../WWW/TheProject.html&gt;About the W3 project&lt;/a&gt;.
+</pre>
+</div>
+</div>
+
+<div id="outline-container-orgb0bce21" class="outline-3">
+<h3 id="orgb0bce21">HTML</h3>
+<div class="outline-text-3" id="text-orgb0bce21">
+<p>
+We don't need to understand the details of what the HTML is doing, but it is important to understand the way HTML works in general. The content displayed on a website is generally embedded within opening and closing HTML tags. The tags taken together with the content are known as an HTML element. The tags either tell a browser how to render the embedded content or simply containerize the content. An opening tag consists of a keyword within angular brackets, whereas a closing tag is the same as the opening tag except the keyword is preceded by a forward slash. For example
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html">&lt;<span class="org-function-name">h1</span>&gt;<span class="org-underline"><span class="org-bold">General Overview</span></span>&lt;/<span class="org-function-name">h1</span>&gt;
+</pre>
+</div>
+
+<p>
+The &lt;h1&gt;&#x2026;&lt;/h1&gt; tags indicate that the content between the opening and closing tags should be treated as a top level heading.
+</p>
+
+<p>
+Additionally, opening HTML tags can have attributes specified within them. Attributes can change the way an HTML element is rendered, behaves, or simply add information about the element. For example
+</p>
+
+<div class="org-src-container">
+<pre class="src src-html">&lt;<span class="org-function-name">a</span> href=http://www.duckduckgo.com&gt;Search Engine&lt;/<span class="org-function-name">a</span>&gt;
+</pre>
+</div>
+
+<p>
+creates a link with the text "Search Engine" pointing to duckduckgo, as specified by the href attribute. The above HTML element would be rendered as
+</p>
+
+<p>
+<a href="http://www.duckduckgo.com">Search Engine</a>
+</p>
+
+<p>
+Before delving into how to parse HTML, it's worth mentioning that HTML elements can be nested within other HTML elements. In this case, the content inherits the properties of all tags enclosing it. When working with nested elements, tags should be closed in the reverse order of which they were opened. In the following example, all words surrounded by the bold tags &lt;b&gt;&#x2026;&lt;/b&gt; will be bolded, but the word surrounded by the italics tag &lt;i&gt;&#x2026;&lt;/i&gt; will be both bolded and italicized as the italics tags are nested within the bold tags.
+</p>
+
+
+<div class="boxed">
+
+<div class="org-src-container">
+<pre class="src src-html">This &lt;<span class="org-function-name">b</span>&gt;is some bolded and &lt;<span class="org-function-name">i</span>&gt;<span class="org-italic">italicized</span>&lt;/<span class="org-function-name">i</span>&gt; text&lt;/<span class="org-function-name">b</span>&gt;.
+</pre>
+</div>
+
+This <b>is some bolded and <i>italicized</i> text</b>.
+</div>
+</div>
+</div>
+
+<div id="outline-container-org3b88711" class="outline-3">
+<h3 id="org3b88711">BeautifulSoup</h3>
+<div class="outline-text-3" id="text-org3b88711">
+<p>
+Beautifulsoup makes it easy to extract content from HTML. We can create a BeautifulSoup object out of HTML, such as what we have stored in our prior request object, with the following:
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python"><span class="org-keyword">from</span> bs4 <span class="org-keyword">import</span> BeautifulSoup
+<span class="org-variable-name">soup</span> = BeautifulSoup<span class="org-rainbow-delimiters-depth-1">(</span>r.text<span class="org-rainbow-delimiters-depth-1">)</span>
+</pre>
+</div>
+
+<p>
+This represent the html stored in the Request object as a nested data structure
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python"><span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span>soup.prettify<span class="org-rainbow-delimiters-depth-2">()</span><span class="org-rainbow-delimiters-depth-1">)</span>
+</pre>
+</div>
+
+<pre class="example" id="orgb137060">
+&lt;html&gt;
+ &lt;head&gt;
+  &lt;title&gt;
+   Overview of the Web
+  &lt;/title&gt;
+ &lt;/head&gt;
+ &lt;body&gt;
+  &lt;h1&gt;
+   General Overview
+  &lt;/h1&gt;
+  There is no "top" to the World-Wide Web.
+You can look at it from many points of view.
+If you have no other bias, here are some ways of looking for
+information.
+  &lt;dl&gt;
+   &lt;dt&gt;
+    &lt;a href="bySubject/Overview.html"&gt;
+     by Subject
+    &lt;/a&gt;
+   &lt;/dt&gt;
+   &lt;dd&gt;
+    A classification by subject of interest. Incomplete
+but easiest to use.
+   &lt;/dd&gt;
+   &lt;dt&gt;
+    &lt;a href="ByAccess.html"&gt;
+     by Type
+    &lt;/a&gt;
+   &lt;/dt&gt;
+   &lt;dd&gt;
+    Looking by type of service (access protocol, etc)
+may allow to find things if you know what you are looking for.
+   &lt;/dd&gt;
+  &lt;/dl&gt;
+  If you have to use a "top" node, we recommend either this node
+or the subject list.
+See also:
+  &lt;a href="../WWW/TheProject.html"&gt;
+   About the W3 project
+  &lt;/a&gt;
+  .
+ &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+
+<p>
+The BeautifulSoup object has attributes associated with the various elements in the html document. For instance, if we want the title of the document contained in soup, it can be extracted by
+</p>
+
+<div class="org-src-container">
+<pre class="src src-python"><span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span>soup.title.text<span class="org-rainbow-delimiters-depth-1">)</span>
+</pre>
+</div>
+
+<pre class="example">
+Overview of the Web
+</pre>
+
+
+<p>
+#+BEGIN<sub>COMMENT</sub>
+df['author'].value<sub>counts</sub>()[0:10]
+E+</p>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Date: 2022-11-11</p>
+<p class="date">Created: 2022-11-17 Thu 17:53</p>
+<p class="validation"><a href="https://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
